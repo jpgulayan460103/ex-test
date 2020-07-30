@@ -1,4 +1,4 @@
-const db = require("../models");
+const db = require("./../database.js")
 const Tutorial = db.tutorials;
 
 // Create and Save a new Tutorial
@@ -10,40 +10,51 @@ exports.create = (req, res) => {
   // }
 
   // Create a Tutorial
-  const tutorial = new Tutorial({
-    title: "test",
-    description: "test",
-    published: true
-  });
+  // const tutorial = new Tutorial({
+  //   title: "test",
+  //   description: "test",
+  //   published: true
+  // });
 
-  // Save Tutorial in the database
-  tutorial
-    .save(tutorial)
-    .then(data => {
-      res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Tutorial."
-      });
-    });
+  // // Save Tutorial in the database
+  // tutorial
+  //   .save(tutorial)
+  //   .then(data => {
+  //     res.send(data);
+  //   })
+  //   .catch(err => {
+  //     res.status(500).send({
+  //       message:
+  //         err.message || "Some error occurred while creating the Tutorial."
+  //     });
+  //   });
 };
 
 // Retrieve all Tutorials from the database.
 exports.findAll = (req, res) => {
-  const title = req.query.title;
-  var condition = title ? { title: { $regex: new RegExp(title), $options: "i" } } : {};
-
-  Tutorial.find(condition)
-    .then(data => {
-      res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving tutorials."
-      });
+  let keyword = req.query.keyword ? req.query.keyword : "";
+  let barangay = req.query.barangay;
+  let sql = "select * from lists";
+  // where keyword like ?
+  let params = [`%${keyword}%`];
+  let keywords = keyword.split(",");
+  let mappedKeywords = keywords.map(item => {
+    return `full_name_ln like '%${item}%'`;
+  });
+  let keywordQuery = mappedKeywords.join(" and ");
+  sql += ` where ${keywordQuery}`;
+  sql += " order by full_name_ln asc limit 500";
+  params = [];
+  console.log(sql);
+  db.all(sql, params, (err, rows) => {
+      if (err) {
+        res.status(400).json({"error":err.message});
+        return;
+      }
+      res.json({
+          "message":"success",
+          "data":rows
+      })
     });
 };
 
