@@ -7,13 +7,13 @@ exports.index = (req, res) => {
   let sql = "select * from lists";
   let keywords = keyword.split(",");
   let mappedKeywords = keywords.map(item => {
-    return `full_name_ln like '%${item}%'`;
+    return `full_name_ln like '%${item.trim()}%'`;
   });
   let keywordQuery = mappedKeywords.join(" and ");
   sql += ` where ${keywordQuery}`;
   if (Array.isArray(barangays) && barangays.length != 0){
     let mappedBarangays = barangays.map(item => {
-      return `barangay_name like '%${item}%'`;
+      return `barangay_name like '%${item.trim()}%'`;
     });
     let barangayQuery = mappedBarangays.join(" or ");
     sql += ` and (${barangayQuery})`;
