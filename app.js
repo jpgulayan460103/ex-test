@@ -8,7 +8,7 @@ const cors = require("cors");
 
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+var beneficiariesRouter = require('./routes/beneficiaries');
 
 var app = express();
 
@@ -40,12 +40,12 @@ var app = express();
 //   });
 
 
-var db = require("./database.js")
+var db = require("./main.db.js")
 
 
 
 var corsOptions = {
-  origin: "http://localhost:3000"
+  origin: "*"
 };
 
 
@@ -68,7 +68,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/beneficiaries', beneficiariesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
