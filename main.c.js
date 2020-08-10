@@ -33,8 +33,23 @@ exports.index = (req, res) => {
     });
 };
 
-exports.statistics = (req, res) => {
+exports.CategoryStatistics = (req, res) => {
   let sql = "select count(*) as category_count, category from lists group by category";
+  params = [];
+  db.all(sql, params, (err, rows) => {
+      if (err) {
+        res.status(400).json({"error":err.message});
+        return;
+      }
+      res.json({
+          "message":"success",
+          "data":rows
+      })
+    });
+};
+
+exports.SourceStatistics = (req, res) => {
+  let sql = "select count(*) as source_count, source from lists group by source";
   params = [];
   db.all(sql, params, (err, rows) => {
       if (err) {
