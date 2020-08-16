@@ -34,7 +34,7 @@ exports.index = (req, res) => {
 };
 
 exports.CategoryStatistics = (req, res) => {
-  let sql = "select count(*) as category_count, category from lists group by category";
+  let sql = "select count(*) as category_count, category, source from lists group by category, source";
   params = [];
   db.all(sql, params, (err, rows) => {
       if (err) {
