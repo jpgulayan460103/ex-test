@@ -63,9 +63,60 @@ exports.SourceStatistics = (req, res) => {
     });
 };
 
-exports.barangayNames = (req, res) => {
-  let sql = "select distinct barangay_name from lists where barangay_name is not null order by barangay_name";
+exports.provinceNames = (req, res) => {
+  let sql = "select distinct province_name from lists where province_name is not null order by province_name";
   params = [];
+  db.all(sql, params, (err, rows) => {
+      if (err) {
+        res.status(400).json({"error":err.message});
+        return;
+      }
+      res.json({
+          "message":"success",
+          "data": rows
+      })
+    });
+};
+
+
+exports.cityNames = (req, res) => {
+  params = [];
+  let province_name = req.query.province_name ? req.query.province_name : "";
+  let provinceQuery = "";
+  if(province_name != ""){
+    provinceQuery = " AND province_name = ?";
+    params.push([province_name]);
+  }
+  let sql = `select distinct city_name, province_name from lists where city_name is not null ${provinceQuery} order by city_name`;
+  db.all(sql, params, (err, rows) => {
+      if (err) {
+        res.status(400).json({"error":err.message});
+        return;
+      }
+      res.json({
+          "message":"success",
+          "data": rows
+      })
+    });
+};
+
+exports.barangayNames = (req, res) => {
+  params = [];
+  let province_name = req.query.province_name ? req.query.province_name : "";
+  let provinceQuery = "";
+  if(province_name != ""){
+    provinceQuery = " AND province_name = ?";
+    params.push([province_name]);
+  }
+
+  let city_name = req.query.city_name ? req.query.city_name : "";
+  let cityQuery = "";
+  if(city_name != ""){
+    cityQuery = " AND city_name = ?";
+    params.push([city_name]);
+  }
+  
+  let sql = `select distinct barangay_name, city_name, province_name from lists where barangay_name is not null ${provinceQuery} ${cityQuery} order by barangay_name`;
   db.all(sql, params, (err, rows) => {
       if (err) {
         res.status(400).json({"error":err.message});

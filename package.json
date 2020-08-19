@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "start http://127.0.0.1:3000 & node ./bin/www",
-    "dev": "nodemon --exec npm start"
+    "test": "node ./bin/www",
+    "dev": "nodemon --exec npm test"
   },
   "dependencies": {
     "body-parser": "^1.19.0",
