@@ -4,11 +4,12 @@ exports.index = (req, res) => {
   let keyword = req.query.keyword ? req.query.keyword : "";
   let barangays = req.query.barangay ? req.query.barangay : [];
   let searchType = req.query.searchType ? req.query.searchType : "full_name_ln";
+  let source = req.query.source ? req.query.source : "";
   keyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   let sql = "select * from lists";
   let keywords = keyword.split(",");
   let mappedKeywords = keywords.map(item => {
-    return `(${searchType} like '%${item.trim()}%')`;
+    return `(full_name_ln like '%${item.trim()}%' or cash_out_ref_number like '%${item.trim()}%')`;
   });
   let keywordQuery = mappedKeywords.join(" and ");
   sql += ` where ${keywordQuery}`;
@@ -18,6 +19,9 @@ exports.index = (req, res) => {
     });
     let barangayQuery = mappedBarangays.join(" or ");
     sql += ` and (${barangayQuery})`;
+  }
+  if(source != ""){
+    sql += ` and source = '${source}'`;
   }
   sql += " order by full_name_ln asc limit 500";
   // console.log(sql);
