@@ -3,11 +3,12 @@ const db = require("./main.db.js")
 exports.index = (req, res) => {
   let keyword = req.query.keyword ? req.query.keyword : "";
   let barangays = req.query.barangay ? req.query.barangay : [];
+  let searchType = req.query.searchType ? req.query.searchType : "full_name_ln";
   keyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   let sql = "select * from lists";
   let keywords = keyword.split(",");
   let mappedKeywords = keywords.map(item => {
-    return `full_name_ln like '%${item.trim()}%'`;
+    return `(${searchType} like '%${item.trim()}%')`;
   });
   let keywordQuery = mappedKeywords.join(" and ");
   sql += ` where ${keywordQuery}`;
