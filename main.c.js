@@ -8,7 +8,7 @@ exports.index = (req, res) => {
   let sql = "select * from lists";
   let keywords = keyword.split(",");
   let mappedKeywords = keywords.map(item => {
-    return `(${searchType} like '%${item.trim()}%')`;
+    return `(full_name_ln like '%${item.trim()}%' or cash_out_ref_number like '%${item.trim()}%')`;
   });
   let keywordQuery = mappedKeywords.join(" and ");
   sql += ` where ${keywordQuery}`;
