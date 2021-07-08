@@ -1,4 +1,4 @@
-const db = require("./main.db.js")
+const {db, usersdb, sqlQuery} = require("./main.db.js")
 
 exports.index = (req, res) => {
   let keyword = req.query.keyword ? req.query.keyword : "";
@@ -129,3 +129,25 @@ exports.barangayNames = (req, res) => {
       })
     });
 };
+
+exports.login = async (req, res) => {
+  if(req.session.page_views){
+    req.session.page_views++;
+    res.send("You visited this page " + req.session.page_views + " times");
+ } else {
+    req.session.page_views = 1;
+    res.send("Welcome to this page for the first time!");
+ }
+}
+
+
+exports.users = async (req, res) => {
+  // res.status(400).json({"error":err.message});
+  let sql = "select id, username, type, is_active from users where deleted = 0";
+  let params = [];
+  let users = await sqlQuery(usersdb,sql,params);
+  res.json({
+    "message":"success",
+    "data": users
+  })
+}

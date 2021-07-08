@@ -1,34 +1,67 @@
 var sqlite3 = require('sqlite3').verbose()
-var md5 = require('md5')
+var bcrypt = require('bcrypt');
 
-const DBSOURCE = "dswd_sap.db"
+const SALTROUNDS = 10;
+const DBSOURCESAP = "dswd_sap.db"
+const DBSOURCEUSERS = "dswd_users.db"
+const sqlQuery = (dta,sql,params) => {
+  return new Promise((resolve, reject) => {
+    dta.all(sql, params, (err, rows) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(rows);
+    });
+  });
+}
 
-let db = new sqlite3.Database(DBSOURCE, (err) => {
+let db = new sqlite3.Database(DBSOURCESAP, (err) => {
     if (err) {
       // Cannot open database
       console.error(err.message)
       throw err
     }else{
-        console.log('Connected to the SQLite database.')
-        // db.run(`CREATE TABLE user (
-        //     id INTEGER PRIMARY KEY AUTOINCREMENT,
-        //     name text, 
-        //     email text UNIQUE, 
-        //     password text, 
-        //     CONSTRAINT email_unique UNIQUE (email)
-        //     )`,
-        // (err) => {
-        //     if (err) {
-        //         // Table already created
-        //     }else{
-        //         // Table just created, creating some rows
-        //         var insert = 'INSERT INTO user (name, email, password) VALUES (?,?,?)'
-        //         db.run(insert, ["admin","admin@example.com",md5("admin123456")])
-        //         db.run(insert, ["user","user@example.com",md5("user123456")])
-        //     }
-        // });  
+        console.log('Connected to the SQLite sap database.')
+    }
+});
+
+let usersdb = new sqlite3.Database(DBSOURCEUSERS, async (err) => {
+    if (err) {
+      // Cannot open database
+      console.error(err.message)
+      throw err
+    }else{
+        console.log('Connected to the SQLite users database.')
+        let sql = "select count(*) as users_count from users";
+        params = [];
+        let usersCount = await sqlQuery(usersdb, sql, params);
+        // let users = await sqlQuery(usersdb, "select * from users", params);
+        // console.log(usersCount);
+        if(usersCount[0].users_count == 0){
+
+          bcrypt.hash('admin', SALTROUNDS, async function (err,   hash) {
+            sql = `insert into users (username,password,type,is_active) values ('admin','${hash}','admin',1)`;
+            usersCount = await sqlQuery(usersdb, sql, params);
+          });
+          
+        }else{
+
+          // console.log(users[0].password);
+          // bcrypt.compare('admin',users[0].password, function (err, result) {
+          //   if (result == true) {
+          //     console.log("match");
+          //     // res.redirect('/home');
+          //   } else {
+              
+          //     console.log("not match");
+          //   }
+          // });
+
+
+        }
     }
 });
 
 
-module.exports = db
+module.exports = {db,usersdb, sqlQuery}
