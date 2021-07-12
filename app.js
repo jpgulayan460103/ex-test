@@ -67,7 +67,12 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(session({ secret: 'this-is-a-secret-token', cookie: { maxAge: 60000 }}));
+app.use(session({
+  secret: 'this-is-a-secret-token',
+  cookie: { maxAge: 60000 },
+  saveUninitialized: false,
+  resave: false
+}));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
