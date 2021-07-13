@@ -1,22 +1,35 @@
 var express = require('express');
 var router = express.Router();
+const controller = require("../main.c.js");
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  if(req.session.page_views > 5){
+  if(!req.session.isUserLogged){
+    // res.redirect('/logged-status');
   }
-  res.send("You visited this page " + req.session.page_views + " times");
-  res.render('index', { title: 'Express' });
+  res.render('error', { data: "asdasdas" });
+});
+
+router.get('/login-status', function(req, res, next) {
+  if(req.session.isUserLogged){
+    res.send("Logged");
+  }else{
+    res.send("Not Logged");
+  }
 });
 
 router.get('/login', function(req, res, next) {
-  if(req.session.page_views){
-    req.session.page_views++;
-    res.send("You visited this page " + req.session.page_views + " times");
-  } else {
-      req.session.page_views = 1;
-      res.send("Welcome to this page for the first time!");
-  }
+  res.render('login');
 });
+router.post("/login", controller.login);
+
+router.use(['/beneficiaries','/users'], function (req, res, next) {
+  // console.log(req.originalUrl);
+  if(req.session.isUserLogged){
+    next()
+  }else{
+    res.status(401).json({"error":"Unauthorized"});
+  }
+})
 
 module.exports = router;

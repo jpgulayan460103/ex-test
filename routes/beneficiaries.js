@@ -10,4 +10,6 @@ router.get("/barangays", controller.barangayNames);
 router.get("/provinces", controller.provinceNames);
 router.get("/cities", controller.cityNames);
 
+
+
 module.exports = router;

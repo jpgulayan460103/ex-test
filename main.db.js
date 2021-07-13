@@ -48,15 +48,7 @@ let usersdb = new sqlite3.Database(DBSOURCEUSERS, async (err) => {
         }else{
 
           // console.log(users[0].password);
-          // bcrypt.compare('admin',users[0].password, function (err, result) {
-          //   if (result == true) {
-          //     console.log("match");
-          //     // res.redirect('/home');
-          //   } else {
-              
-          //     console.log("not match");
-          //   }
-          // });
+          
 
 
         }

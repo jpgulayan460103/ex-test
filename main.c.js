@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const {db, usersdb, sqlQuery} = require("./main.db.js")
 
 exports.index = (req, res) => {
@@ -131,13 +132,29 @@ exports.barangayNames = (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  if(req.session.page_views){
-    req.session.page_views++;
-    res.send("You visited this page " + req.session.page_views + " times");
- } else {
-    req.session.page_views = 1;
-    res.send("Welcome to this page for the first time!");
- }
+  let sql = "select * from users where username = ?";
+  let password = req.body.password;
+  let username = req.body.username;
+  let params = [username];
+  // console.log(username);
+  
+  // res.status(200).json({"status":username});
+  let users = await sqlQuery(usersdb, sql, params);
+  if(users.length != 0){
+    let result = await bcrypt.compare(password,users[0].password);
+
+    if (result == true) {
+      req.session.isUserLogged = true;
+      delete users[0].password;
+      req.session.userLogged = users[0];
+      res.status(200).json({"status":'ok'});
+    } else {
+      res.status(422).json({"status":'error', "message":'Invalid credentials'});
+    }
+  }else{
+    res.status(422).json({"status":'error', "message":'Invalid credentials'});
+  }
+  
 }
 
 
