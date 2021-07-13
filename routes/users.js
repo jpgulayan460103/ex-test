@@ -4,8 +4,9 @@ var router = express.Router();
 const controller = require("../main.c.js");
 
 router.get("/", controller.users);
-router.post("/", controller.usersAdd);
-router.put("/:userId", controller.usersUpdate);
+router.post("/", controller.userAdd);
+router.put("/:userId", controller.userUpdate);
+router.delete("/:userId", controller.userDelete);
 
 
 module.exports = router;

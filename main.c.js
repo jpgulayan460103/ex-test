@@ -40,7 +40,7 @@ exports.index = (req, res) => {
   params = [];
   db.all(sql, params, (err, rows) => {
       if (err) {
-        res.status(400).json({"error":err.message});
+        res.status(400).json({"message":err.message});
         return;
       }
       res.json({
@@ -55,7 +55,7 @@ exports.CategoryStatistics = (req, res) => {
   params = [];
   db.all(sql, params, (err, rows) => {
       if (err) {
-        res.status(400).json({"error":err.message});
+        res.status(400).json({"message":err.message});
         return;
       }
       res.json({
@@ -70,7 +70,7 @@ exports.SourceStatistics = (req, res) => {
   params = [];
   db.all(sql, params, (err, rows) => {
       if (err) {
-        res.status(400).json({"error":err.message});
+        res.status(400).json({"message":err.message});
         return;
       }
       res.json({
@@ -85,7 +85,7 @@ exports.provinceNames = (req, res) => {
   params = [];
   db.all(sql, params, (err, rows) => {
       if (err) {
-        res.status(400).json({"error":err.message});
+        res.status(400).json({"message":err.message});
         return;
       }
       res.json({
@@ -107,7 +107,7 @@ exports.cityNames = (req, res) => {
   let sql = `select distinct city_name, province_name from lists where city_name is not null ${provinceQuery} order by city_name`;
   db.all(sql, params, (err, rows) => {
       if (err) {
-        res.status(400).json({"error":err.message});
+        res.status(400).json({"message":err.message});
         return;
       }
       res.json({
@@ -136,7 +136,7 @@ exports.barangayNames = (req, res) => {
   let sql = `select distinct barangay_name, city_name, province_name from lists where barangay_name is not null ${provinceQuery} ${cityQuery} order by barangay_name`;
   db.all(sql, params, (err, rows) => {
       if (err) {
-        res.status(400).json({"error":err.message});
+        res.status(400).json({"message":err.message});
         return;
       }
       res.json({
@@ -160,19 +160,19 @@ exports.login = async (req, res) => {
       req.session.isUserLogged = true;
       delete users[0].password;
       req.session.userLogged = users[0];
-      res.status(200).json({"status":'ok'});
+      res.status(200).json({"message":"success"});
     } else {
-      res.status(422).json({"status":'error', "message":'Invalid credentials'});
+      res.status(422).json({"message":'Username not found'});
     }
   }else{
-    res.status(422).json({"status":'error', "message":'Invalid credentials'});
+    res.status(422).json({"message":'Invalid credentials'});
   }
   
 }
 
 
 exports.users = async (req, res) => {
-  let sql = "select id, username, type, is_active from users where deleted = 0";
+  let sql = "select id, username, type, is_active from users";
   let params = [];
   let users = await sqlQuery(usersdb,sql,params);
   res.json({
@@ -181,7 +181,7 @@ exports.users = async (req, res) => {
   })
 }
 
-exports.usersAdd = async (req, res) => {
+exports.userAdd = async (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
   let type = req.body.type;
@@ -197,12 +197,12 @@ exports.usersAdd = async (req, res) => {
       "data": users
     })
   }else{
-    res.status(422).json({"error":"Username is already added"});
+    res.status(422).json({"message":"Username is already added"});
   }
 }
 
 
-exports.usersUpdate = async (req, res) => {
+exports.userUpdate = async (req, res) => {
   let userId = req.params.userId;
   let username = req.body.username;
   let password = req.body.password;
@@ -210,7 +210,7 @@ exports.usersUpdate = async (req, res) => {
 
   let users = await sqlQuery(usersdb,"select * from users where id = ?",userId);
   if(users.length == 0){
-    res.status(404).json({"error":"No user found"});
+    res.status(404).json({"message":"No user found"});
     return false;
   }
   let user = users[0];
@@ -235,4 +235,17 @@ exports.usersUpdate = async (req, res) => {
     "message":"success",
     "data": user
   })
+}
+
+exports.userDelete = async (req, res) => {
+  let userId = req.params.userId;
+  let userLogged = req.session.userLogged;
+  if(userLogged && userLogged.type == "admin"){
+    await sqlQuery(usersdb,"delete from users where id = ?",userId);
+    res.json({
+      "message":"success",
+    })
+  }else{
+    res.status(403).json({"message":"Unauthorized"});
+  }
 }
