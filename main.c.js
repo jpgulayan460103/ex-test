@@ -2,8 +2,22 @@ const bcrypt = require('bcrypt');
 const {db, usersdb, sqlQuery} = require("./main.db.js")
 const SALTROUNDS = 10;
 
+const addSearchHistory = async (keyword, user) => {
+  let d = new Date();
+  let n = d.toLocaleDateString();
+  let sql = "insert into search_histories (user_id, search_query) values (?,?)";
+  let params = [user.id, keyword];
+  let searchHistory = await sqlQuery(usersdb, "select * from search_histories where user_id = ? and search_query = ?", params);
+  if(searchHistory.length == 0){
+    sqlQuery(usersdb, sql, params);
+  }
+}
 exports.index = (req, res) => {
   let keyword = req.query.keyword ? req.query.keyword : "";
+  let userLogged = req.session.userLogged;
+  if(keyword.trim() != "" && userLogged){
+    addSearchHistory(keyword, userLogged)
+  }
   let barangays = req.query.barangay ? req.query.barangay : [];
   let searchType = req.query.searchType ? req.query.searchType : "full_name_ln";
   keyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "");

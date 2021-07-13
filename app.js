@@ -69,7 +69,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(session({
   secret: 'this-is-a-secret-token',
-  cookie: { maxAge: 60000 },
+  cookie: { maxAge: 14400000 },
   saveUninitialized: false,
   resave: false
 }));
