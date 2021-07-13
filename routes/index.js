@@ -28,7 +28,8 @@ router.use(['/beneficiaries','/users'], function (req, res, next) {
   if(req.session.isUserLogged){
     next()
   }else{
-    res.status(401).json({"error":"Unauthorized"});
+    next()
+    // res.status(401).json({"error":"Unauthorized"});
   }
 })
 

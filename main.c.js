@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const {db, usersdb, sqlQuery} = require("./main.db.js")
+const SALTROUNDS = 10;
 
 exports.index = (req, res) => {
   let keyword = req.query.keyword ? req.query.keyword : "";
@@ -136,9 +137,7 @@ exports.login = async (req, res) => {
   let password = req.body.password;
   let username = req.body.username;
   let params = [username];
-  // console.log(username);
   
-  // res.status(200).json({"status":username});
   let users = await sqlQuery(usersdb, sql, params);
   if(users.length != 0){
     let result = await bcrypt.compare(password,users[0].password);
@@ -159,12 +158,67 @@ exports.login = async (req, res) => {
 
 
 exports.users = async (req, res) => {
-  // res.status(400).json({"error":err.message});
   let sql = "select id, username, type, is_active from users where deleted = 0";
   let params = [];
   let users = await sqlQuery(usersdb,sql,params);
   res.json({
     "message":"success",
     "data": users
+  })
+}
+
+exports.usersAdd = async (req, res) => {
+  let username = req.body.username;
+  let password = req.body.password;
+  let type = req.body.type;
+
+  let users = await sqlQuery(usersdb,"select * from users where username = ?",[username]);
+  if(users.length == 0){
+    let hash = await bcrypt.hash(password, SALTROUNDS);
+    let insertSql = `insert into users (username,password,type,is_active) values (?,'${hash}',?,0)`;
+    let params = [username, type];
+    await sqlQuery(usersdb,insertSql,params);
+    res.json({
+      "message":"success",
+      "data": users
+    })
+  }else{
+    res.status(422).json({"error":"Username is already added"});
+  }
+}
+
+
+exports.usersUpdate = async (req, res) => {
+  let userId = req.params.userId;
+  let username = req.body.username;
+  let password = req.body.password;
+  let type = req.body.type;
+
+  let users = await sqlQuery(usersdb,"select * from users where id = ?",userId);
+  if(users.length == 0){
+    res.status(404).json({"error":"No user found"});
+    return false;
+  }
+  let user = users[0];
+  delete user.password;
+  
+  let sql = `update users set`;
+  let params = [username];
+  sql = `${sql} username = ?`
+  if(password && password.trim() != ""){
+    let hash = await bcrypt.hash(password, SALTROUNDS);
+    sql = `${sql}, password = ?`
+    params.push(hash);
+  }
+  if(type && type.trim() != ""){
+    sql = `${sql}, type = ?`
+    params.push(type);
+  }
+  params.push(userId);
+  sql = `${sql} where id = ?`;
+  await sqlQuery(usersdb,sql,params);
+  res.json({
+    "message":"success",
+    "data": user
   })
 }
