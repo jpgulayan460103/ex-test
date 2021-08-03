@@ -154,6 +154,9 @@ exports.login = async (req, res) => {
   
   let users = await sqlQuery(usersdb, sql, params);
   if(users.length != 0){
+    if(users[0].is_active == 0){
+      res.status(422).json({"message":'Username not activated.'});
+    }
     let result = await bcrypt.compare(password,users[0].password);
 
     if (result == true) {
@@ -172,7 +175,7 @@ exports.login = async (req, res) => {
 
 
 exports.users = async (req, res) => {
-  let sql = "select id, username, type, is_active from users";
+  let sql = "select id, username, type, is_active, first_name, middle_name, last_name, department_unit from users";
   let params = [];
   let users = await sqlQuery(usersdb,sql,params);
   res.json({
@@ -184,13 +187,17 @@ exports.users = async (req, res) => {
 exports.userAdd = async (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
-  let type = req.body.type;
+  let type = 'user';
+  let first_name = req.body.first_name;
+  let middle_name = req.body.middle_name;
+  let last_name = req.body.last_name;
+  let department_unit = req.body.department_unit;
 
   let users = await sqlQuery(usersdb,"select * from users where username = ?",[username]);
   if(users.length == 0){
     let hash = await bcrypt.hash(password, SALTROUNDS);
-    let insertSql = `insert into users (username,password,type,is_active) values (?,'${hash}',?,0)`;
-    let params = [username, type];
+    let insertSql = `insert into users (username,password,type,is_active,first_name,middle_name,last_name,department_unit) values (?,?,?,0,?,?,?,?)`;
+    let params = [username, hash, type, first_name, middle_name, last_name, department_unit];
     await sqlQuery(usersdb,insertSql,params);
     res.json({
       "message":"success",

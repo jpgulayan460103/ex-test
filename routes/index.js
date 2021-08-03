@@ -3,19 +3,20 @@ var router = express.Router();
 const controller = require("../main.c.js");
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get(['/'], function(req, res, next) {
   if(!req.session.isUserLogged){
-    // res.redirect('/logged-status');
+    // res.redirect('/login');
   }
-  res.render('error', { data: "asdasdas" });
+  res.render('index');
 });
 
-router.get('/login-status', function(req, res, next) {
-  if(req.session.isUserLogged){
-    res.send("Logged");
-  }else{
-    res.send("Not Logged");
-  }
+router.get(['/login'], function(req, res, next) {
+  res.render('index');
+});
+
+router.get('/logout', function(req, res, next) {
+  req.session.destroy();
+  res.redirect('/login');
 });
 
 router.get('/login', function(req, res, next) {
@@ -24,12 +25,16 @@ router.get('/login', function(req, res, next) {
 router.post("/login", controller.login);
 
 router.use(['/beneficiaries','/users'], function (req, res, next) {
-  // console.log(req.originalUrl);
   if(req.session.isUserLogged){
     next()
   }else{
+    let reqType = req.accepts(['html', 'json']);
     next()
-    // res.status(401).json({"error":"Unauthorized"});
+    // if(reqType == "json"){
+    //   res.status(401).json({"error":"Unauthorized"});
+    // }else{
+    //   res.redirect('/login');
+    // }
   }
 })
 

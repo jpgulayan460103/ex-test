@@ -1,6 +1,6 @@
 {
   "name": "dswd-sap",
-  "version": "0.0.0",
+  "version": "2.4.0",
   "private": true,
   "scripts": {
     "start": "start http://127.0.0.1:3000 & node ./bin/www",
