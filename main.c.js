@@ -2,22 +2,17 @@ const bcrypt = require('bcrypt');
 const {db, usersdb, sqlQuery} = require("./main.db.js")
 const SALTROUNDS = 10;
 
-const addSearchHistory = async (keyword, user) => {
+const logUserAccess = (user, userAgent) => {
   let d = new Date();
-  let n = d.toLocaleDateString();
-  let sql = "insert into search_histories (user_id, search_query) values (?,?)";
-  let params = [user.id, keyword];
-  let searchHistory = await sqlQuery(usersdb, "select * from search_histories where user_id = ? and search_query = ?", params);
-  if(searchHistory.length == 0){
-    sqlQuery(usersdb, sql, params);
-  }
+  let date = d.toLocaleDateString();
+  let time = d.toLocaleTimeString();
+  let sql = "insert into login_logs (user_id, date, user_agent) values (?,?,?)";
+  let params = [user.id, `${date} ${time}`, JSON.stringify(userAgent)];
+  sqlQuery(usersdb, sql, params);
 }
 exports.index = (req, res) => {
   let keyword = req.query.keyword ? req.query.keyword : "";
   let userLogged = req.session.userLogged;
-  if(keyword.trim() != "" && userLogged){
-    addSearchHistory(keyword, userLogged)
-  }
   let barangays = req.query.barangay ? req.query.barangay : [];
   let searchType = req.query.searchType ? req.query.searchType : "full_name_ln";
   keyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -163,6 +158,7 @@ exports.login = async (req, res) => {
       req.session.isUserLogged = true;
       delete users[0].password;
       req.session.userLogged = users[0];
+      logUserAccess(users[0], req.useragent);
       res.status(200).json({"message":"success"});
     } else {
       res.status(422).json({"message":'Username not found'});
@@ -175,12 +171,23 @@ exports.login = async (req, res) => {
 
 
 exports.users = async (req, res) => {
-  let sql = "select id, username, type, is_active, first_name, middle_name, last_name, department_unit from users";
+  let sql = "select id, username, type, is_active, first_name, middle_name, last_name, department_unit from users order by last_name, first_name";
   let params = [];
   let users = await sqlQuery(usersdb,sql,params);
   res.json({
     "message":"success",
     "data": users
+  })
+}
+
+exports.usersLog = async (req, res) => {
+  let userId = req.params.userId;
+  let sql = "select * from login_logs where user_id = ? order by id desc";
+  let params = [userId];
+  let logs = await sqlQuery(usersdb,sql,params);
+  res.json({
+    "message":"success",
+    "data": logs
   })
 }
 
@@ -214,6 +221,7 @@ exports.userUpdate = async (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
   let type = req.body.type;
+  let isActive = req.body.is_active;
 
   let users = await sqlQuery(usersdb,"select * from users where id = ?",userId);
   if(users.length == 0){
@@ -235,12 +243,17 @@ exports.userUpdate = async (req, res) => {
     sql = `${sql}, type = ?`
     params.push(type);
   }
+  if(isActive && isActive.trim() != ""){
+    sql = `${sql}, is_active = ?`
+    params.push(isActive == "yes" ? 1 : 0);
+  }
   params.push(userId);
   sql = `${sql} where id = ?`;
   await sqlQuery(usersdb,sql,params);
   res.json({
     "message":"success",
-    "data": user
+    "data": user,
+    "sql" : sql
   })
 }
 

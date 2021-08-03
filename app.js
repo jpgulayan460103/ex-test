@@ -6,6 +6,7 @@ var logger = require('morgan');
 var session = require('express-session');
 const bodyParser = require("body-parser");
 const cors = require("cors");
+var useragent = require('express-useragent');
 
 
 var indexRouter = require('./routes/index');
@@ -33,6 +34,7 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(useragent.express());
 app.use(session({
   secret: 'this-is-a-secret-token',
   cookie: { maxAge: 14400000 },
