@@ -19,6 +19,7 @@
     "express-useragent": "^1.0.15",
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
+    "lodash": "^4.17.21",
     "md5": "^2.2.1",
     "mongodb": "^3.5.9",
     "mongoose": "^5.9.26",

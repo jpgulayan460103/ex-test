@@ -1,5 +1,7 @@
+const isEmpty = require('lodash/isEmpty');
 const bcrypt = require('bcrypt');
-const {db, usersdb, sqlQuery} = require("./main.db.js")
+const {db, usersdb, sqlQuery} = require("./main.db.js");
+const { update } = require('lodash');
 const SALTROUNDS = 10;
 
 const logUserAccess = (user, userAgent) => {
@@ -161,10 +163,10 @@ exports.login = async (req, res) => {
       logUserAccess(users[0], req.useragent);
       res.status(200).json({"message":"success"});
     } else {
-      res.status(422).json({"message":'Username not found'});
+      res.status(422).json({"message":'Invalid credentials'});
     }
   }else{
-    res.status(422).json({"message":'Invalid credentials'});
+    res.status(422).json({"message":'Username not found'});
   }
   
 }
@@ -191,28 +193,73 @@ exports.usersLog = async (req, res) => {
   })
 }
 
+const userAddValidation = async (req, userId = null) => {
+  let errors = {};
+  let hasErrors = false;
+  let username = req.body.username;
+  let password = req.body.password;
+  let first_name = req.body.first_name;
+  let last_name = req.body.last_name;
+  let department_unit = req.body.department_unit;
+
+  //confirm password
+  let password_confirmation = req.body.password_confirmation;
+  if(password && password_confirmation &&  password.trim() != password_confirmation.trim()){
+    errors.password = ["Password do not match"];
+  }
+  
+  let users;
+  if(userId == null){
+    users = await sqlQuery(usersdb,"select * from users where username = ?",[username]);
+  }else{
+    users = await sqlQuery(usersdb,"select * from users where username = ? and id is not ?",[username, userId]);
+  }
+  //user exist
+  if(users.length != 0){
+    errors.username = ["Username already exist"];
+  }
+
+
+  if(first_name && first_name.trim() == ""){
+    errors.first_name = ["Required"];
+  }
+  if(last_name && last_name.trim() == ""){
+    errors.last_name = ["Required"];
+  }
+  if(department_unit && department_unit.trim() == ""){
+    errors.department_unit = ["Required"];
+  }
+  hasErrors = !isEmpty(errors);
+  return {
+    hasErrors,
+    errors
+  };
+}
+
 exports.userAdd = async (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
+  let password_confirmation = req.body.password_confirmation;
   let type = 'user';
   let first_name = req.body.first_name;
   let middle_name = req.body.middle_name;
   let last_name = req.body.last_name;
   let department_unit = req.body.department_unit;
 
-  let users = await sqlQuery(usersdb,"select * from users where username = ?",[username]);
-  if(users.length == 0){
-    let hash = await bcrypt.hash(password, SALTROUNDS);
-    let insertSql = `insert into users (username,password,type,is_active,first_name,middle_name,last_name,department_unit) values (?,?,?,0,?,?,?,?)`;
-    let params = [username, hash, type, first_name, middle_name, last_name, department_unit];
-    await sqlQuery(usersdb,insertSql,params);
-    res.json({
-      "message":"success",
-      "data": users
-    })
-  }else{
-    res.status(422).json({"message":"Username is already added"});
+  let validationResults = await userAddValidation(req);
+  if(validationResults.hasErrors){
+    res.status(422).json({errors: validationResults.errors});
+    return false;
   }
+
+
+  let hash = await bcrypt.hash(password, SALTROUNDS);
+  let insertSql = `insert into users (username,password,type,is_active,first_name,middle_name,last_name,department_unit) values (?,?,?,0,?,?,?,?)`;
+  let params = [username, hash, type, first_name, middle_name, last_name, department_unit];
+  await sqlQuery(usersdb,insertSql,params);
+  res.json({
+    "message":"success",
+  })
 }
 
 
@@ -220,8 +267,19 @@ exports.userUpdate = async (req, res) => {
   let userId = req.params.userId;
   let username = req.body.username;
   let password = req.body.password;
+  let department_unit = req.body.department_unit;
+  let first_name = req.body.first_name;
+  let last_name = req.body.last_name;
+  let middle_name = req.body.middle_name;
   let type = req.body.type;
   let isActive = req.body.is_active;
+
+
+  let validationResults = await userAddValidation(req, userId);
+  if(validationResults.hasErrors){
+    res.status(422).json({errors: validationResults.errors});
+    return false;
+  }
 
   let users = await sqlQuery(usersdb,"select * from users where id = ?",userId);
   if(users.length == 0){
@@ -247,19 +305,42 @@ exports.userUpdate = async (req, res) => {
     sql = `${sql}, is_active = ?`
     params.push(isActive == "yes" ? 1 : 0);
   }
+  if(department_unit && department_unit.trim() != ""){
+    sql = `${sql}, department_unit = ?`
+    params.push(department_unit);
+  }
+  if(first_name && first_name.trim() != ""){
+    sql = `${sql}, first_name = ?`
+    params.push(first_name);
+  }
+  if(last_name && last_name.trim() != ""){
+    sql = `${sql}, last_name = ?`
+    params.push(last_name);
+  }
+  if(middle_name && middle_name.trim() != ""){
+    sql = `${sql}, middle_name = ?`
+    params.push(middle_name);
+  }
   params.push(userId);
   sql = `${sql} where id = ?`;
   await sqlQuery(usersdb,sql,params);
   res.json({
     "message":"success",
     "data": user,
-    "sql" : sql
+    "sql" : sql,
+    params
   })
 }
 
 exports.userDelete = async (req, res) => {
   let userId = req.params.userId;
   let userLogged = req.session.userLogged;
+
+  await sqlQuery(usersdb,"delete from users where id = ?",userId);
+  // res.json({
+  //   "message":"success",
+  // })
+  // return false;
   if(userLogged && userLogged.type == "admin"){
     await sqlQuery(usersdb,"delete from users where id = ?",userId);
     res.json({
@@ -268,4 +349,18 @@ exports.userDelete = async (req, res) => {
   }else{
     res.status(403).json({"message":"Unauthorized"});
   }
+}
+
+exports.logged = async (req, res) => {
+  let userLogged = req.session.userLogged;
+  // console.log(userLogged == false);
+  // if(typeof userLogged == "undefined"){
+  //   userLogged = await sqlQuery(usersdb,"select * from users where username = ?",['jpgulayan']);
+  //   userLogged = userLogged[0];
+  //   delete userLogged.password;
+  // }
+  res.json({
+    "message":"success",
+    "data":userLogged
+  })
 }
