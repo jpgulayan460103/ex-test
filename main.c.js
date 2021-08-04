@@ -207,6 +207,18 @@ const userAddValidation = async (req, userId = null) => {
   if(password && password_confirmation &&  password.trim() != password_confirmation.trim()){
     errors.password = ["Password do not match"];
   }
+
+  //password length
+  if(password && password.trim() != "" && password.length < 6){
+    errors.password = ["Password must be atleast 6 characters"];
+  }
+
+  //password strength
+  var myRe = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?& ])[A-Za-z\d@$!%*#?&]{0,}$/gm;
+  var myArray = myRe.exec(password);
+  if(myArray == null){
+    errors.password = ["Password must contain at least one letter, one number and one special character"];
+  }
   
   let users;
   if(userId == null){
