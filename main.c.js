@@ -216,7 +216,7 @@ const userAddValidation = async (req, userId = null) => {
   //password strength
   var myRe = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?& ])[A-Za-z\d@$!%*#?&]{0,}$/gm;
   var myArray = myRe.exec(password);
-  if(myArray == null){
+  if(password && password.trim() != "" && myArray == null){
     errors.password = ["Password must contain at least one letter, one number and one special character"];
   }
   
