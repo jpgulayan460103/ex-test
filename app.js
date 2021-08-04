@@ -19,8 +19,9 @@ var db = require("./main.db.js")
 
 
 
-var corsOptions = {
-  origin: "*"
+const corsOptions = {
+  credentials: true,
+  origin: true,
 };
 
 
