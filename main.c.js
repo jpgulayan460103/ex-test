@@ -3,6 +3,9 @@ const bcrypt = require('bcrypt');
 const {db, usersdb, sqlQuery} = require("./main.db.js");
 const { update } = require('lodash');
 const SALTROUNDS = 10;
+const JWT_KEY = "123123";
+const jwt = require('jsonwebtoken');
+
 
 const logUserAccess = (user, userAgent) => {
   let d = new Date();
@@ -12,9 +15,44 @@ const logUserAccess = (user, userAgent) => {
   let params = [user.id, `${date} ${time}`, JSON.stringify(userAgent)];
   sqlQuery(usersdb, sql, params);
 }
+
+const getHeaderToken = (req) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  return {authHeader, token}
+}
+
+const authenticateToken = (req, res, next) => {
+  const tokenHeader = getHeaderToken(req);
+  const { authHeader, token } = tokenHeader;
+  console.log(token);
+
+  if (token == null) return res.sendStatus(403)
+
+  jwt.verify(token, JWT_KEY, (err, user) => {
+    console.log(err)
+
+    if (err) return res.sendStatus(401)
+    next()
+  })
+}
+
+const authenticateUser = (req, res) => {
+  const tokenHeader = getHeaderToken(req);
+  const { authHeader, token } = tokenHeader;
+
+  if (token == null) return res.sendStatus(401)
+
+  return jwt.verify(token, JWT_KEY);
+}
+
+exports.authenticateToken = (req, res, next) => {
+  authenticateToken(req, res, next);
+}
+
+
 exports.index = (req, res) => {
   let keyword = req.query.keyword ? req.query.keyword : "";
-  let userLogged = req.session.userLogged;
   let barangays = req.query.barangay ? req.query.barangay : [];
   let searchType = req.query.searchType ? req.query.searchType : "full_name_ln";
   keyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -157,11 +195,10 @@ exports.login = async (req, res) => {
     let result = await bcrypt.compare(password,users[0].password);
 
     if (result == true) {
-      req.session.isUserLogged = true;
       delete users[0].password;
-      req.session.userLogged = users[0];
       logUserAccess(users[0], req.useragent);
-      res.status(200).json({"message":"success"});
+      let jwt_token = jwt.sign(users[0], "123123", { expiresIn: '1d' });
+      res.status(200).json({"message":"success","token": jwt_token});
     } else {
       res.status(422).json({"message":'Invalid credentials'});
     }
@@ -346,13 +383,8 @@ exports.userUpdate = async (req, res) => {
 
 exports.userDelete = async (req, res) => {
   let userId = req.params.userId;
-  let userLogged = req.session.userLogged;
+  let userLogged = authenticateUser(req, res);
 
-  await sqlQuery(usersdb,"delete from users where id = ?",userId);
-  // res.json({
-  //   "message":"success",
-  // })
-  // return false;
   if(userLogged && userLogged.type == "admin"){
     await sqlQuery(usersdb,"delete from users where id = ?",userId);
     res.json({
@@ -364,13 +396,8 @@ exports.userDelete = async (req, res) => {
 }
 
 exports.logged = async (req, res) => {
-  let userLogged = req.session.userLogged;
-  // console.log(userLogged == false);
-  // if(typeof userLogged == "undefined"){
-  //   userLogged = await sqlQuery(usersdb,"select * from users where username = ?",['jpgulayan']);
-  //   userLogged = userLogged[0];
-  //   delete userLogged.password;
-  // }
+  let userLogged
+  userLogged = authenticateUser(req, res)
   res.json({
     "message":"success",
     "data":userLogged

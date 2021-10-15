@@ -4,9 +4,8 @@ const controller = require("../main.c.js");
 
 /* GET home page. */
 router.get(['/','/pages/:userId?'], function(req, res, next) {
-  if(!req.session.isUserLogged && req.originalUrl != "/pages/login"){
-    res.redirect('/pages/login');
-  }
+  // controller.authenticateToken(req, res, next);
+
   res.render('index');
 });
 
@@ -24,17 +23,17 @@ router.post("/login", controller.login);
 router.get('/logged', controller.logged);
 
 router.use(['/beneficiaries'], function (req, res, next) {
-  if(req.session.isUserLogged){next()}else{res.status(401).json({"error":"Unauthorized"});}
+  controller.authenticateToken(req, res, next);
 })
 router.use(['/users'], function (req, res, next) {
   let method = req.method;
   switch (method) {
     case "GET":
-      if(req.session.isUserLogged && req.session.userLogged.type == "admin"){next()}else{res.status(403).json({"error":"Unauthorized"});}
+      controller.authenticateToken(req, res, next);
       break;
     case "PUT":
     case "DELETE":
-      if(req.session.isUserLogged){next()}else{res.status(401).json({"error":"Unauthorized"});}
+      controller.authenticateToken(req, res, next);
       break;
   
     default:
@@ -42,5 +41,7 @@ router.use(['/users'], function (req, res, next) {
       break;
   }
 })
+
+
 
 module.exports = router;

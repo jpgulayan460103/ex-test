@@ -1,26 +1,26 @@
 {
   "files": {
-    "main.css": " /static/css/main.3f8dad0c.chunk.css",
-    "main.js": " /static/js/main.40781072.chunk.js",
-    "main.js.map": " /static/js/main.40781072.chunk.js.map",
-    "runtime-main.js": " /static/js/runtime-main.49b4f142.js",
-    "runtime-main.js.map": " /static/js/runtime-main.49b4f142.js.map",
-    "static/css/2.8c856d75.chunk.css": " /static/css/2.8c856d75.chunk.css",
-    "static/js/2.367bcdd2.chunk.js": " /static/js/2.367bcdd2.chunk.js",
-    "static/js/2.367bcdd2.chunk.js.map": " /static/js/2.367bcdd2.chunk.js.map",
-    "index.html": " /index.html",
-    "precache-manifest.fa16246c96c318ec07866fb95bec5a73.js": " /precache-manifest.fa16246c96c318ec07866fb95bec5a73.js",
-    "service-worker.js": " /service-worker.js",
-    "static/css/2.8c856d75.chunk.css.map": " /static/css/2.8c856d75.chunk.css.map",
-    "static/css/main.3f8dad0c.chunk.css.map": " /static/css/main.3f8dad0c.chunk.css.map",
-    "static/js/2.367bcdd2.chunk.js.LICENSE.txt": " /static/js/2.367bcdd2.chunk.js.LICENSE.txt",
-    "static/media/logo.png": " /static/media/logo.86d1eb32.png"
+    "main.css": "/sap/static/css/main.3f8dad0c.chunk.css",
+    "main.js": "/sap/static/js/main.cbd6ab7a.chunk.js",
+    "main.js.map": "/sap/static/js/main.cbd6ab7a.chunk.js.map",
+    "runtime-main.js": "/sap/static/js/runtime-main.a954b73c.js",
+    "runtime-main.js.map": "/sap/static/js/runtime-main.a954b73c.js.map",
+    "static/css/2.8c856d75.chunk.css": "/sap/static/css/2.8c856d75.chunk.css",
+    "static/js/2.b455855a.chunk.js": "/sap/static/js/2.b455855a.chunk.js",
+    "static/js/2.b455855a.chunk.js.map": "/sap/static/js/2.b455855a.chunk.js.map",
+    "index.html": "/sap/index.html",
+    "precache-manifest.e9d53973cdb453e37c6dd06eacb5d00c.js": "/sap/precache-manifest.e9d53973cdb453e37c6dd06eacb5d00c.js",
+    "service-worker.js": "/sap/service-worker.js",
+    "static/css/2.8c856d75.chunk.css.map": "/sap/static/css/2.8c856d75.chunk.css.map",
+    "static/css/main.3f8dad0c.chunk.css.map": "/sap/static/css/main.3f8dad0c.chunk.css.map",
+    "static/js/2.b455855a.chunk.js.LICENSE.txt": "/sap/static/js/2.b455855a.chunk.js.LICENSE.txt",
+    "static/media/logo.png": "/sap/static/media/logo.86d1eb32.png"
   },
   "entrypoints": [
-    "static/js/runtime-main.49b4f142.js",
+    "static/js/runtime-main.a954b73c.js",
     "static/css/2.8c856d75.chunk.css",
-    "static/js/2.367bcdd2.chunk.js",
+    "static/js/2.b455855a.chunk.js",
     "static/css/main.3f8dad0c.chunk.css",
-    "static/js/main.40781072.chunk.js"
+    "static/js/main.cbd6ab7a.chunk.js"
   ]
 }
